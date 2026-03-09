@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Ticket, HelpCircle } from "lucide-react";
+import { Search, Ticket, HelpCircle, LucideTicketPlus } from "lucide-react";
 import { SearchView } from "./components/SearchView";
 import { MyTicketsView } from "./components/MyTicketsView";
 import { HelpView } from "./components/HelpView";
@@ -13,9 +13,12 @@ export default function App() {
   return (
     <div className="flex flex-col h-screen bg-gray-50 max-w-md mx-auto">
       {/* Header */}
-      <header className="bg-blue-400 text-white p-4 shadow-md">
-        <h1 className="text-xl font-semibold">ReSam</h1>
-        <p className="text-sm opacity-90">Samlad resa i Mälardalen</p>
+      <header className="bg-blue-400 text-white p-4 shadow-md flex flex-row items-center gap-x-2">
+        <LucideTicketPlus className="w-8 h-8 mb-1" />
+        <span>
+          <h1 className="text-xl font-semibold">[[Appnamn]]</h1>
+          <p className="text-sm opacity-90">Samlad resa i Mälardalen</p>
+        </span>
       </header>
 
       {/* Content */}
