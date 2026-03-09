@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { MessageCircle, FileText, AlertCircle, Phone, Mail, Clock, LucideQrCode } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import {
   Dialog,
   DialogContent,
@@ -146,9 +147,10 @@ export function HelpView() {
           </DialogHeader>
           {shareUrl ? (
             <div className="flex flex-col items-center gap-3">
-              <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(shareUrl)}`}
-                alt="QR-kod för aktuell sida"
+              <QRCodeSVG
+                value={shareUrl}
+                size={220}
+                title="QR-kod för aktuell sida"
                 className="h-[220px] w-[220px]"
               />
               <p className="text-center text-sm text-gray-600">Skanna för att öppna denna sida</p>
