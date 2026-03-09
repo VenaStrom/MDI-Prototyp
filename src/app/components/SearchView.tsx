@@ -5,12 +5,20 @@ import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
 
 type TravelTimeMode = 'now' | 'departure' | 'arrival';
 
+const getCurrentLocalTime = () => {
+  const now = new Date();
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+
+  return `${hours}:${minutes}`;
+};
+
 export function SearchView() {
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [travelTimeMode, setTravelTimeMode] = useState<TravelTimeMode>('now');
   const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
+  const [time, setTime] = useState(getCurrentLocalTime);
   const [showResults, setShowResults] = useState(false);
 
   const handleSearch = (e: React.SubmitEvent) => {
@@ -18,7 +26,7 @@ export function SearchView() {
     if (from && to) {
       const now = new Date();
       const currentDate = now.toISOString().split('T')[0];
-      const currentTime = now.toTimeString().slice(0, 5);
+      const currentTime = getCurrentLocalTime();
 
       if (travelTimeMode === 'now') {
         setDate(currentDate);
@@ -127,7 +135,7 @@ export function SearchView() {
 
           {travelTimeMode !== 'now' && (
             <>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     {travelTimeMode === 'departure' ? 'Avresedatum' : 'Ankomstdatum'}
@@ -157,9 +165,6 @@ export function SearchView() {
                   </div>
                 </div>
               </div>
-              <p className="text-xs text-gray-600">
-                Om du lämnar fälten tomma används aktuellt datum och klockslag.
-              </p>
             </>
           )}
 
