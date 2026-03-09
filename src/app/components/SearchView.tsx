@@ -1,17 +1,38 @@
 import { useState } from 'react';
 import { ArrowRight, Calendar, Clock, MapPin } from 'lucide-react';
 import { JourneyResults } from './JourneyResults';
+import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
+
+type TravelTimeMode = 'now' | 'departure' | 'arrival';
 
 export function SearchView() {
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
+  const [travelTimeMode, setTravelTimeMode] = useState<TravelTimeMode>('now');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [showResults, setShowResults] = useState(false);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = (e: React.SubmitEvent) => {
     e.preventDefault();
     if (from && to) {
+      const now = new Date();
+      const currentDate = now.toISOString().split('T')[0];
+      const currentTime = now.toTimeString().slice(0, 5);
+
+      if (travelTimeMode === 'now') {
+        setDate(currentDate);
+        setTime(currentTime);
+      } else {
+        if (!date) {
+          setDate(currentDate);
+        }
+
+        if (!time) {
+          setTime(currentTime);
+        }
+      }
+
       setShowResults(true);
     }
   };
@@ -24,7 +45,7 @@ export function SearchView() {
     <div className="p-4">
       <div className="bg-white rounded-lg shadow-md p-6">
         <h2 className="text-lg font-semibold mb-4">Planera din resa</h2>
-        
+
         <form onSubmit={handleSearch} className="space-y-4">
           {/* From */}
           <div>
@@ -76,37 +97,71 @@ export function SearchView() {
             </div>
           </div>
 
-          {/* Date and Time */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Datum
-              </label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tid
-              </label>
-              <div className="relative">
-                <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="time"
-                  value={time}
-                  onChange={(e) => setTime(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent"
-                />
-              </div>
-            </div>
+          {/* Travel Time Mode */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              När vill du resa?
+            </label>
+            <ToggleGroup
+              type="single"
+              value={travelTimeMode}
+              onValueChange={(value) => {
+                if (value) {
+                  setTravelTimeMode(value as TravelTimeMode);
+                }
+              }}
+              variant="outline"
+              className="w-full"
+            >
+              <ToggleGroupItem value="now" className="flex-1">
+                Res nu
+              </ToggleGroupItem>
+              <ToggleGroupItem value="departure" className="flex-1">
+                Avresedatum
+              </ToggleGroupItem>
+              <ToggleGroupItem value="arrival" className="flex-1">
+                Ankomstdatum
+              </ToggleGroupItem>
+            </ToggleGroup>
           </div>
+
+          {travelTimeMode !== 'now' && (
+            <>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {travelTimeMode === 'departure' ? 'Avresedatum' : 'Ankomstdatum'}
+                  </label>
+                  <div className="relative">
+                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="date"
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tid
+                  </label>
+                  <div className="relative">
+                    <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="time"
+                      value={time}
+                      onChange={(e) => setTime(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+              </div>
+              <p className="text-xs text-gray-600">
+                Om du lämnar fälten tomma används aktuellt datum och klockslag.
+              </p>
+            </>
+          )}
 
           {/* Search Button */}
           <button

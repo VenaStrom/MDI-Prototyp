@@ -8,3 +8,4 @@ next/
 .DS_Store
 *.log
 .idea/
+tsconfig.tsbuildinfo
