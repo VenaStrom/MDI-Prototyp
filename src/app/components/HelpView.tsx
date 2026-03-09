@@ -69,7 +69,7 @@ export function HelpView() {
         <h3 className="font-semibold mb-3">Vem ansvarar för vad?</h3>
         <div className="space-y-3 text-sm">
           <div>
-            <p className="font-medium mb-1">ReSam (denna app)</p>
+            <p className="font-medium mb-1">[[Appnamn]] (denna app)</p>
             <ul className="space-y-1 text-gray-600 ml-4">
               <li>• Samordning mellan operatörer</li>
               <li>• Ersättningshantering</li>
@@ -99,11 +99,11 @@ export function HelpView() {
               <p className="text-sm text-gray-600">0771-123 456</p>
             </div>
           </a>
-          <a href="mailto:support@resam.se" className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+          <a href="mailto:support@example.com" className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
             <Mail className="w-5 h-5 text-gray-600" />
             <div>
               <p className="font-medium">E-post</p>
-              <p className="text-sm text-gray-600">support@resam.se</p>
+              <p className="text-sm text-gray-600">support@example.com</p>
             </div>
           </a>
           <button className="w-full flex items-center gap-3 p-3 bg-blue-400 text-white rounded-lg hover:bg-blue-500 transition-colors">

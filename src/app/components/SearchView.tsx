@@ -181,7 +181,7 @@ export function SearchView() {
 
       {/* Quick Info */}
       <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h3 className="font-medium text-blue-900 mb-2">Fördelar med ReSam</h3>
+        <h3 className="font-medium text-blue-900 mb-2">Fördelar med [[Appnamn]]</h3>
         <ul className="space-y-1 text-sm text-blue-800">
           <li>✓ En biljett för hela resan</li>
           <li>✓ Flexibla biljetter - ej bundna till avgång</li>
