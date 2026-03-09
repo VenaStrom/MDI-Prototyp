@@ -1,6 +1,15 @@
-import { MessageCircle, FileText, AlertCircle, Phone, Mail, Clock } from 'lucide-react';
+import { useState } from 'react';
+import { MessageCircle, FileText, AlertCircle, Phone, Mail, Clock, LucideQrCode } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from './ui/dialog';
 
 export function HelpView() {
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+
   return (
     <div className="p-4">
       <h2 className="text-xl font-semibold mb-4">Hjälp & Support</h2>
@@ -118,6 +127,36 @@ export function HelpView() {
           Ersättningsärenden hanteras automatiskt dygnet runt
         </p>
       </div>
+
+      {/* Share demo */}
+      <div className="mt-6 text-center">
+        <button
+          className="inline-flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+          onClick={() => setShareUrl(window.location.href)}
+        >
+          <LucideQrCode className="w-5 h-5" />
+          <span>Dela demo</span>
+        </button>
+      </div>
+
+      <Dialog open={Boolean(shareUrl)} onOpenChange={(open) => !open && setShareUrl(null)}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Dela demo</DialogTitle>
+          </DialogHeader>
+          {shareUrl ? (
+            <div className="flex flex-col items-center gap-3">
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(shareUrl)}`}
+                alt="QR-kod för aktuell sida"
+                className="h-[220px] w-[220px]"
+              />
+              <p className="text-center text-sm text-gray-600">Skanna för att öppna denna sida</p>
+              <p className="w-full break-all text-center text-xs text-gray-500">{shareUrl}</p>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
