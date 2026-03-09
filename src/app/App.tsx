@@ -3,7 +3,7 @@ import { Search, Ticket, HelpCircle } from "lucide-react";
 import { SearchView } from "./components/SearchView";
 import { MyTicketsView } from "./components/MyTicketsView";
 import { HelpView } from "./components/HelpView";
-import "@/styles/index.tw.css";
+import "../styles/index.tw.css";
 
 type View = "search" | "tickets" | "help";
 
