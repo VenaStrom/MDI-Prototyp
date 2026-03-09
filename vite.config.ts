@@ -12,11 +12,11 @@ export default defineConfig({
       "@": "./src",
     },
   },
+  base: "/MDI-Prototyp/",
   root: "src",
   build: {
     outDir: "../dist",
     emptyOutDir: true,
   },
-
   assetsInclude: ["**/*.svg", "**/*.csv"],
 });
