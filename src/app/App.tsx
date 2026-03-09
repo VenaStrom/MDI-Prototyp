@@ -11,7 +11,7 @@ export default function App() {
   const [currentView, setCurrentView] = useState<View>("search");
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50 max-w-md mx-auto">
+    <div className="flex flex-col h-dvh bg-gray-50 max-w-md mx-auto">
       {/* Header */}
       <header className="bg-blue-400 text-white p-4 shadow-md flex flex-row items-center gap-x-2">
         <LucideTicketPlus className="w-8 h-8 mb-1" />
