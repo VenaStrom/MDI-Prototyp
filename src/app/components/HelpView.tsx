@@ -92,11 +92,11 @@ export function HelpView() {
       <div className="bg-white rounded-lg shadow-md p-4 mb-4">
         <h3 className="font-semibold mb-3">Kontakta oss</h3>
         <div className="space-y-3">
-          <a href="tel:0771123456" className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+          <a href="tel:+46700000000" className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
             <Phone className="w-5 h-5 text-gray-600" />
             <div>
               <p className="font-medium">Telefon</p>
-              <p className="text-sm text-gray-600">0771-123 456</p>
+              <p className="text-sm text-gray-600">0700-000 000</p>
             </div>
           </a>
           <a href="mailto:support@example.com" className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
