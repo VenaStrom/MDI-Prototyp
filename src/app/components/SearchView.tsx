@@ -21,6 +21,17 @@ export function SearchView() {
   const [time, setTime] = useState(getCurrentLocalTime);
   const [showResults, setShowResults] = useState(false);
 
+  const favorites = [
+    { from: 'Uppsala C', to: 'Stockholm C' },
+    { from: 'Uppsala C', to: 'Arlanda C' },
+  ];
+
+  const recentSearches = [
+    { from: 'Märsta', to: 'Stockholm C' },
+    { from: 'Västerås C', to: 'Uppsala C' },
+    { from: 'Uppsala C', to: 'Märsta' },
+  ];
+
   const handleSearch = (e: React.SubmitEvent) => {
     e.preventDefault();
     if (from && to) {
@@ -176,6 +187,45 @@ export function SearchView() {
             Sök resor
             <ArrowRight className="w-5 h-5" />
           </button>
+
+
+          <div>
+            <h3 className="text-sm font-medium text-gray-700 mb-2">Favoriter</h3>
+            <div className="space-y-2">
+              {favorites.map((favorite) => (
+                <button
+                  key={`${favorite.from}-${favorite.to}`}
+                  type="button"
+                  onClick={() => {
+                    setFrom(favorite.from);
+                    setTo(favorite.to);
+                  }}
+                  className="w-full text-left px-3 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <span className="text-sm text-gray-800">{favorite.from} → {favorite.to}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-medium text-gray-700 mb-2">Senaste sökningar</h3>
+            <div className="space-y-2">
+              {recentSearches.map((search, index) => (
+                <button
+                  key={`${search.from}-${search.to}-${index}`}
+                  type="button"
+                  onClick={() => {
+                    setFrom(search.from);
+                    setTo(search.to);
+                  }}
+                  className="w-full text-left px-3 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <span className="text-sm text-gray-700">{search.from} → {search.to}</span>
+                </button>
+              ))}
+            </div>
+          </div>
         </form>
       </div>
 
