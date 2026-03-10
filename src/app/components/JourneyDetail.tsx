@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Clock, MapPin, Train, Bus, AlertCircle, TrendingUp, ShoppingCart } from 'lucide-react';
+import { ArrowLeft, MapPin, Train, Bus, AlertCircle, TrendingUp, ShoppingCart } from 'lucide-react';
 import { TicketPurchase } from './TicketPurchase';
 
 interface JourneySegment {

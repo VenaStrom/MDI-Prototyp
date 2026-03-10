@@ -1,4 +1,4 @@
-import { QrCode, Calendar, Clock, MapPin, ChevronRight } from 'lucide-react';
+import { QrCode, Calendar, Clock, ChevronRight } from 'lucide-react';
 import { Location as L } from '../../locations';
 
 const mockTickets = [
