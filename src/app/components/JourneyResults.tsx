@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Calendar, Clock, TrendingUp, AlertCircle, Train, Bus } from 'lucide-react';
 import { JourneyDetail } from './JourneyDetail';
 import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
@@ -29,72 +29,167 @@ interface Journey {
   delay?: number;
 }
 
-const mockJourneys: Journey[] = [
-  {
-    id: '1',
-    departure: '08:15',
-    arrival: '09:03',
-    duration: '48 min',
-    price: 145,
-    reliability: 95,
-    segments: [
-      {
-        operator: 'UL',
-        type: 'train',
-        from: L.UppsalaC,
-        to: L.StockholmC,
-        departure: '08:15',
-        arrival: '09:03',
-      }
-    ]
-  },
-  {
-    id: '2',
-    departure: '08:45',
-    arrival: '09:52',
-    duration: '1 h 7 min',
-    price: 165,
-    reliability: 88,
-    delay: 5,
-    segments: [
-      {
-        operator: 'UL',
-        type: 'train',
-        from: L.UppsalaC,
-        to: L.Märsta,
-        departure: '08:45',
-        arrival: '09:12',
-        delay: 5
-      },
-      {
-        operator: 'SL',
-        type: 'train',
-        from: L.Märsta,
-        to: L.StockholmC,
-        departure: '09:25',
-        arrival: '09:52',
-      }
-    ]
-  },
-  {
-    id: '3',
-    departure: '09:15',
-    arrival: '10:08',
-    duration: '53 min',
-    price: 145,
-    reliability: 92,
-    segments: [
-      {
-        operator: 'SJ',
-        type: 'train',
-        from: L.UppsalaC,
-        to: L.StockholmC,
-        departure: '09:15',
-        arrival: '10:08',
-      }
-    ]
+const parseTimeToMinutes = (time: string) => {
+  const [hours, minutes] = time.split(':').map(Number);
+
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) {
+    const now = new Date();
+    return now.getHours() * 60 + now.getMinutes();
   }
-];
+
+  return hours * 60 + minutes;
+};
+
+const formatMinutesToTime = (totalMinutes: number) => {
+  const wrappedMinutes = ((totalMinutes % 1440) + 1440) % 1440;
+  const hours = Math.floor(wrappedMinutes / 60);
+  const minutes = wrappedMinutes % 60;
+
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+};
+
+const formatDuration = (durationMinutes: number) => {
+  const hours = Math.floor(durationMinutes / 60);
+  const minutes = durationMinutes % 60;
+
+  if (!hours) {
+    return `${minutes} min`;
+  }
+
+  if (!minutes) {
+    return `${hours} h`;
+  }
+
+  return `${hours} h ${minutes} min`;
+};
+
+const estimateBaseDuration = (from: string, to: string) => {
+  const fromName = from.toLowerCase();
+  const toName = to.toLowerCase();
+  const route = `${fromName} ${toName}`;
+
+  if (fromName === toName) {
+    return 18;
+  }
+
+  if (route.includes('uppsala') && route.includes('stockholm')) {
+    return 48;
+  }
+
+  if (route.includes('arlanda')) {
+    return 35;
+  }
+
+  if (route.includes('märsta')) {
+    return 32;
+  }
+
+  if (route.includes('västerås')) {
+    return 56;
+  }
+
+  if (route.includes('stockholm')) {
+    return 52;
+  }
+
+  return 45;
+};
+
+const getTransferStation = (from: string, to: string) => {
+  const fallbackStations = [L.Märsta, L.ArlandaC, L.StockholmC, L.UppsalaC, L.VästeråsC];
+  return fallbackStations.find((station) => station !== from && station !== to) ?? L.Märsta;
+};
+
+const buildJourneys = (
+  from: string,
+  to: string,
+  travelTimeMode: TravelTimeMode,
+  selectedTime: string,
+): Journey[] => {
+  const baseDuration = estimateBaseDuration(from, to);
+  const now = new Date();
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const requestedMinutes = parseTimeToMinutes(selectedTime);
+  const referenceMinutes = travelTimeMode === 'now' ? nowMinutes : requestedMinutes;
+
+  const departureOffsets = [5, 25, 45];
+  const arrivalOffsets = [0, 18, 36];
+  const durationVariants = [0, 14, 8];
+
+  const directOperators = ['UL', 'SJ', 'MTR'];
+  const firstLegOperators = ['UL', 'VL', 'SL'];
+  const secondLegOperators = ['SL', 'SJ', 'Mälartåg'];
+
+  return departureOffsets.map((offset, index) => {
+    const isTransferJourney = index === 1;
+    const durationMinutes = baseDuration + durationVariants[index];
+    const layoverMinutes = isTransferJourney ? 8 : 0;
+
+    const departureMinutes = travelTimeMode === 'arrival'
+      ? referenceMinutes + arrivalOffsets[index] - durationMinutes - layoverMinutes
+      : referenceMinutes + offset;
+    const arrivalMinutes = departureMinutes + durationMinutes + layoverMinutes;
+
+    const departure = formatMinutesToTime(departureMinutes);
+    const arrival = formatMinutesToTime(arrivalMinutes);
+
+    const transferStation = getTransferStation(from, to);
+
+    const segments = isTransferJourney
+      ? (() => {
+        const firstLegMinutes = Math.max(16, Math.round(durationMinutes * 0.45));
+        const firstArrivalMinutes = departureMinutes + firstLegMinutes;
+        const secondDepartureMinutes = firstArrivalMinutes + layoverMinutes;
+        const firstLegType: 'train' | 'bus' = index % 2 === 0 ? 'train' : 'bus';
+
+        return [
+          {
+            operator: firstLegOperators[index % firstLegOperators.length],
+            type: firstLegType,
+            from,
+            to: transferStation,
+            departure,
+            arrival: formatMinutesToTime(firstArrivalMinutes),
+            delay: 4,
+          },
+          {
+            operator: secondLegOperators[index % secondLegOperators.length],
+            type: 'train' as const,
+            from: transferStation,
+            to,
+            departure: formatMinutesToTime(secondDepartureMinutes),
+            arrival,
+          }
+        ];
+      })()
+      : [
+        {
+          operator: directOperators[index % directOperators.length],
+          type: 'train' as const,
+          from,
+          to,
+          departure,
+          arrival,
+        }
+      ];
+
+    const transferPenalty = isTransferJourney ? 18 : 0;
+    const rawPrice = 45 + durationMinutes * 1.75 + transferPenalty;
+    const price = Math.round(rawPrice / 5) * 5;
+    const reliability = isTransferJourney ? 86 : 92 - index * 2;
+
+    return {
+      id: String(index + 1),
+      departure,
+      arrival,
+      duration: formatDuration(durationMinutes + layoverMinutes),
+      price,
+      reliability,
+      segments,
+      delay: isTransferJourney ? 4 : undefined,
+    };
+  });
+};
 
 interface JourneyResultsProps {
   from: string;
@@ -120,6 +215,19 @@ export function JourneyResults({
   onBack,
 }: JourneyResultsProps) {
   const [selectedJourney, setSelectedJourney] = useState<Journey | null>(null);
+  const journeys = useMemo(
+    () => buildJourneys(from, to, travelTimeMode, selectedTime),
+    [from, to, travelTimeMode, selectedTime],
+  );
+
+  useEffect(() => {
+    if (!selectedJourney) {
+      return;
+    }
+
+    const updatedJourney = journeys.find((journey) => journey.id === selectedJourney.id) ?? null;
+    setSelectedJourney(updatedJourney);
+  }, [journeys, selectedJourney]);
 
   useEffect(() => {
     const handlePopState = (event: PopStateEvent) => {
@@ -131,7 +239,7 @@ export function JourneyResults({
         return;
       }
 
-      const matchingJourney = mockJourneys.find((journey) => journey.id === selectedJourneyId) ?? null;
+      const matchingJourney = journeys.find((journey) => journey.id === selectedJourneyId) ?? null;
       setSelectedJourney(matchingJourney);
     };
 
@@ -140,7 +248,7 @@ export function JourneyResults({
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
-  }, []);
+  }, [journeys]);
 
   const navigateToJourneyDetail = (journey: Journey) => {
     const currentState = (window.history.state as JourneyResultsHistoryState | null) ?? {};
@@ -236,7 +344,7 @@ export function JourneyResults({
 
       {/* Results */}
       <div className="space-y-3">
-        {mockJourneys.map((journey) => (
+        {journeys.map((journey) => (
           <div
             key={journey.id}
             onClick={() => navigateToJourneyDetail(journey)}
