@@ -7,7 +7,16 @@ import { logEvent } from '../telemetry';
 import type { AppTicket } from '../tickets';
 
 type TravelTimeMode = 'now' | 'departure' | 'arrival';
-type SearchHistoryState = { mdiSearchResults?: boolean };
+type SearchHistoryState = {
+  mdiAppView?: 'search' | 'tickets' | 'help';
+  mdiSearchResults?: boolean;
+  mdiSearchFrom?: string;
+  mdiSearchTo?: string;
+  mdiSearchDate?: string;
+  mdiSearchTime?: string;
+  mdiSearchTravelTimeMode?: TravelTimeMode;
+  [key: string]: unknown;
+};
 type RouteSelection = { from: string; to: string };
 
 const stationOptions = [...new Set([
@@ -58,13 +67,19 @@ interface SearchViewProps {
 }
 
 export function SearchView({ onShowTickets, onTicketPurchased }: SearchViewProps) {
-  const [from, setFrom] = useState('');
-  const [to, setTo] = useState('');
+  const initialHistoryState = (window.history.state as SearchHistoryState | null) ?? {};
+  const shouldUseInitialSearchState = initialHistoryState.mdiAppView === 'search';
+  const [from, setFrom] = useState(shouldUseInitialSearchState ? (initialHistoryState.mdiSearchFrom ?? '') : '');
+  const [to, setTo] = useState(shouldUseInitialSearchState ? (initialHistoryState.mdiSearchTo ?? '') : '');
   const [searchError, setSearchError] = useState<string | null>(null);
-  const [travelTimeMode, setTravelTimeMode] = useState<TravelTimeMode>('now');
-  const [date, setDate] = useState('');
-  const [time, setTime] = useState(getCurrentLocalTime);
-  const [showResults, setShowResults] = useState(false);
+  const [travelTimeMode, setTravelTimeMode] = useState<TravelTimeMode>(
+    shouldUseInitialSearchState ? (initialHistoryState.mdiSearchTravelTimeMode ?? 'now') : 'now',
+  );
+  const [date, setDate] = useState(shouldUseInitialSearchState ? (initialHistoryState.mdiSearchDate ?? '') : '');
+  const [time, setTime] = useState(shouldUseInitialSearchState ? (initialHistoryState.mdiSearchTime ?? getCurrentLocalTime()) : getCurrentLocalTime());
+  const [showResults, setShowResults] = useState(
+    shouldUseInitialSearchState && Boolean(initialHistoryState.mdiSearchResults),
+  );
 
   useEffect(() => {
     void logEvent({
@@ -115,6 +130,32 @@ export function SearchView({ onShowTickets, onTicketPurchased }: SearchViewProps
   useEffect(() => {
     const handlePopState = (event: PopStateEvent) => {
       const state = event.state as SearchHistoryState | null;
+
+      if (state?.mdiAppView !== 'search') {
+        setShowResults(false);
+        return;
+      }
+
+      if (typeof state?.mdiSearchFrom === 'string') {
+        setFrom(state.mdiSearchFrom);
+      }
+
+      if (typeof state?.mdiSearchTo === 'string') {
+        setTo(state.mdiSearchTo);
+      }
+
+      if (typeof state?.mdiSearchDate === 'string') {
+        setDate(state.mdiSearchDate);
+      }
+
+      if (typeof state?.mdiSearchTime === 'string') {
+        setTime(state.mdiSearchTime);
+      }
+
+      if (state?.mdiSearchTravelTimeMode) {
+        setTravelTimeMode(state.mdiSearchTravelTimeMode);
+      }
+
       setShowResults(Boolean(state?.mdiSearchResults));
     };
 
@@ -125,8 +166,18 @@ export function SearchView({ onShowTickets, onTicketPurchased }: SearchViewProps
     };
   }, []);
 
-  const navigateToResults = () => {
-    const nextState: SearchHistoryState = { mdiSearchResults: true };
+  const navigateToResults = (searchFrom: string, searchTo: string) => {
+    const currentState = (window.history.state as SearchHistoryState | null) ?? {};
+    const nextState: SearchHistoryState = {
+      ...currentState,
+      mdiSearchResults: true,
+      mdiSearchFrom: searchFrom,
+      mdiSearchTo: searchTo,
+      mdiSearchDate: date,
+      mdiSearchTime: time,
+      mdiSearchTravelTimeMode: travelTimeMode,
+    };
+
     window.history.pushState(nextState, '', window.location.href);
     setShowResults(true);
   };
@@ -225,7 +276,7 @@ export function SearchView({ onShowTickets, onTicketPurchased }: SearchViewProps
       },
     });
 
-    navigateToResults();
+    navigateToResults(resolvedFrom, resolvedTo);
   };
 
   const handleSearch = (e: React.SubmitEvent) => {

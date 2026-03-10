@@ -9,10 +9,46 @@ import { Toaster } from "sonner";
 import "../styles/index.tw.css";
 
 type View = "search" | "tickets" | "help";
+type AppHistoryState = {
+  mdiAppView?: View;
+  [key: string]: unknown;
+};
 
 export default function App() {
   const [currentView, setCurrentView] = useState<View>("search");
   const [tickets, setTickets] = useState<AppTicket[]>([ALWAYS_MOCK_TICKET]);
+
+  const navigateToView = (nextView: View) => {
+    if (nextView === currentView) {
+      return;
+    }
+
+    const currentState = (window.history.state as AppHistoryState | null) ?? {};
+    const nextState: AppHistoryState = nextView === "search"
+      ? {
+        ...currentState,
+        mdiAppView: nextView,
+        mdiSearchResults: false,
+        mdiSearchJourneyDetailId: undefined,
+      }
+      : {
+        ...currentState,
+        mdiAppView: nextView,
+      };
+
+    window.history.pushState(nextState, '', window.location.href);
+    setCurrentView(nextView);
+
+    void logEvent({
+      eventType: "custom",
+      view: "navigation",
+      elementId: "app_view_history_push",
+      details: {
+        nextView,
+        resetSearchSubstate: nextView === "search",
+      },
+    });
+  };
 
   useEffect(() => {
     void logEvent({
@@ -32,6 +68,48 @@ export default function App() {
     });
   }, []);
 
+  useEffect(() => {
+    const state = (window.history.state as AppHistoryState | null) ?? {};
+
+    if (state.mdiAppView !== currentView) {
+      window.history.replaceState(
+        {
+          ...state,
+          mdiAppView: currentView,
+        } satisfies AppHistoryState,
+        '',
+        window.location.href,
+      );
+    }
+
+    const handlePopState = (event: PopStateEvent) => {
+      const nextState = event.state as AppHistoryState | null;
+      const nextView = nextState?.mdiAppView;
+
+      if (!nextView) {
+        setCurrentView("search");
+        return;
+      }
+
+      setCurrentView(nextView);
+
+      void logEvent({
+        eventType: "custom",
+        view: "navigation",
+        elementId: "app_view_history_pop",
+        details: {
+          nextView,
+        },
+      });
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [currentView]);
+
   return (
     <div className="flex flex-col h-dvh bg-gray-50 lg:max-w-6/12 mx-auto">
       {/* Header */}
@@ -47,7 +125,7 @@ export default function App() {
       <main className="flex-1 overflow-auto">
         {currentView === "search" && (
           <SearchView
-            onShowTickets={() => setCurrentView("tickets")}
+            onShowTickets={() => navigateToView("tickets")}
             onTicketPurchased={(ticket) => {
               setTickets((previousTickets) => [ticket, ...previousTickets]);
             }}
@@ -66,7 +144,7 @@ export default function App() {
               view: "navigation",
               elementId: "nav_search",
             });
-            setCurrentView("search");
+            navigateToView("search");
           }}
           className={`flex flex-col items-center p-2 flex-1 rounded-lg transition-colors ${currentView === "search"
             ? "text-blue-500 bg-blue-50"
@@ -83,7 +161,7 @@ export default function App() {
               view: "navigation",
               elementId: "nav_tickets",
             });
-            setCurrentView("tickets");
+            navigateToView("tickets");
           }}
           className={`flex flex-col items-center p-2 flex-1 rounded-lg transition-colors ${currentView === "tickets"
             ? "text-blue-500 bg-blue-50"
@@ -100,7 +178,7 @@ export default function App() {
               view: "navigation",
               elementId: "nav_help",
             });
-            setCurrentView("help");
+            navigateToView("help");
           }}
           className={`flex flex-col items-center p-2 flex-1 rounded-lg transition-colors ${currentView === "help"
             ? "text-blue-500 bg-blue-50"

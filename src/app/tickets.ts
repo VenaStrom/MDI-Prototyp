@@ -19,7 +19,7 @@ export const ALWAYS_MOCK_TICKET: AppTicket = {
   date: '2026-03-07',
   validFrom: '08:15',
   validUntil: '10:15',
-  price: 145,
+  price: 95,
   operators: ['UL'],
   status: 'active',
 } as const;

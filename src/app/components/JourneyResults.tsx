@@ -195,8 +195,8 @@ const buildJourneys = (
         }
       ];
 
-    const transferPenalty = isTransferJourney ? 18 : 0;
-    const rawPrice = 45 + durationMinutes * 1.75 + transferPenalty;
+    const transferPenalty = isTransferJourney ? 9 : 0;
+    const rawPrice = 15 + durationMinutes * 1.3 + transferPenalty;
     const price = Math.round(rawPrice / 5) * 5;
     const reliability = isTransferJourney ? 86 : 92 - index * 2;
 
