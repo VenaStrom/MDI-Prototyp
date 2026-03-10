@@ -9,7 +9,8 @@
     "dev": "vite",
     "build": "vite build",
     "start": "vite preview",
-    "lint": "tsc --noEmit --incremental false -p tsconfig.json && eslint --config eslint.config.ts ."
+    "lint": "tsc --noEmit --incremental false -p tsconfig.json && tsc --noEmit --incremental false -p stats/tsconfig.json && eslint --config eslint.config.ts . && eslint --config stats/eslint.config.ts stats",
+    "stats": "tsx stats/main.ts"
   },
   "dependencies": {
     "@emotion/react": "11.14.0",
@@ -73,15 +74,18 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@tailwindcss/vite": "4.1.12",
-    "@types/node": "^25.3.5",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.4.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@typescript-eslint/eslint-plugin": "^8.56.1",
     "@typescript-eslint/parser": "^8.56.1",
     "@vitejs/plugin-react": "4.7.0",
     "eslint": "^10.0.3",
+    "express": "^5.2.1",
     "globals": "^17.4.0",
     "tailwindcss": "4.1.12",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.57.0",
     "vite": "6.3.5"
