@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Calendar, Clock, TrendingUp, AlertCircle, Train, Bus } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, TrendingUp, AlertCircle, Train, Bus, Star } from 'lucide-react';
 import { JourneyDetail } from './JourneyDetail';
 import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
 import { Location as L } from '../../locations';
@@ -225,6 +225,8 @@ interface JourneyResultsProps {
   onBack: () => void;
   onShowTickets: () => void;
   onTicketPurchased: (ticket: AppTicket) => void;
+  onAddFavoriteRoute: (from: string, to: string) => boolean;
+  isCurrentRouteFavorite: boolean;
 }
 
 export function JourneyResults({
@@ -239,6 +241,8 @@ export function JourneyResults({
   onBack,
   onShowTickets,
   onTicketPurchased,
+  onAddFavoriteRoute,
+  isCurrentRouteFavorite,
 }: JourneyResultsProps) {
   const [selectedJourney, setSelectedJourney] = useState<Journey | null>(null);
   const journeyDateLabel = useMemo(
@@ -358,7 +362,7 @@ export function JourneyResults({
     <div className="p-4">
       {/* Header */}
       <div className="mb-4">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between">
           <button
             onClick={() => {
               void logEvent({
@@ -372,6 +376,29 @@ export function JourneyResults({
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
+          <button
+            onClick={() => {
+              const wasAdded = onAddFavoriteRoute(from, to);
+              void logEvent({
+                eventType: 'button_click',
+                view: 'journey_results',
+                elementId: 'add_favorite_route',
+                success: wasAdded,
+                details: {
+                  from,
+                  to,
+                  reason: wasAdded ? 'added' : 'already_exists_or_invalid',
+                },
+              });
+            }}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            aria-label="Lägg till i favoriter"
+          >
+            <Star className={`w-5 h-5 ${isCurrentRouteFavorite ? 'text-yellow-500 fill-yellow-500' : 'text-gray-500'}`} />
+          </button>
+        </div>
+
+        <div className="mt-2 px-2">
           <h2 className="font-semibold">{from} → {to}</h2>
         </div>
 

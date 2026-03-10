@@ -101,10 +101,10 @@ export function SearchView({ onShowTickets, onTicketPurchased }: SearchViewProps
     }
   };
 
-  const favorites: RouteSelection[] = [
+  const [favorites, setFavorites] = useState<RouteSelection[]>([
     { from: L.UppsalaC, to: L.StockholmC },
     { from: L.UppsalaC, to: L.ArlandaC },
-  ];
+  ]);
 
   const [recentSearches, setRecentSearches] = useState<RouteSelection[]>([
     { from: L.Märsta, to: L.StockholmC },
@@ -233,6 +233,31 @@ export function SearchView({ onShowTickets, onTicketPurchased }: SearchViewProps
     performSearch(from, to);
   };
 
+  const addRouteToFavorites = (routeFrom: string, routeTo: string) => {
+    const resolvedFrom = resolveStationOption(routeFrom);
+    const resolvedTo = resolveStationOption(routeTo);
+
+    if (!resolvedFrom || !resolvedTo) {
+      return false;
+    }
+
+    let wasAdded = false;
+
+    setFavorites((previousFavorites) => {
+      const alreadyExists = previousFavorites.some(
+        (favorite) => favorite.from === resolvedFrom && favorite.to === resolvedTo,
+      );
+
+      if (alreadyExists) {
+        return previousFavorites;
+      }
+
+      wasAdded = true;
+      return [{ from: resolvedFrom, to: resolvedTo }, ...previousFavorites].slice(0, 6);
+    });
+
+    return wasAdded;
+  };
   if (showResults) {
     return (
       <JourneyResults
@@ -247,6 +272,8 @@ export function SearchView({ onShowTickets, onTicketPurchased }: SearchViewProps
         onBack={navigateBackToSearch}
         onShowTickets={onShowTickets}
         onTicketPurchased={onTicketPurchased}
+        onAddFavoriteRoute={addRouteToFavorites}
+        isCurrentRouteFavorite={favorites.some((favorite) => favorite.from === from && favorite.to === to)}
       />
     );
   }
