@@ -2,9 +2,19 @@ import { useEffect, useState } from 'react';
 import { ArrowRight, Calendar, Clock, History, MapPin, Star } from 'lucide-react';
 import { JourneyResults } from './JourneyResults';
 import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
+import { Location as L } from '../../locations';
 
 type TravelTimeMode = 'now' | 'departure' | 'arrival';
 type SearchHistoryState = { mdiSearchResults?: boolean };
+type RouteSelection = { from: string; to: string };
+
+const stationOptions = [
+  L.UppsalaC,
+  L.StockholmC,
+  L.VästeråsC,
+  L.ArlandaC,
+  L.Märsta,
+];
 
 const getCurrentLocalTime = () => {
   const now = new Date();
@@ -23,15 +33,15 @@ export function SearchView() {
   const [time, setTime] = useState(getCurrentLocalTime);
   const [showResults, setShowResults] = useState(false);
 
-  const favorites = [
-    { from: 'Uppsala C', to: 'Stockholm C' },
-    { from: 'Uppsala C', to: 'Arlanda C' },
+  const favorites: RouteSelection[] = [
+    { from: L.UppsalaC, to: L.StockholmC },
+    { from: L.UppsalaC, to: L.ArlandaC },
   ];
 
-  const [recentSearches, setRecentSearches] = useState([
-    { from: 'Märsta', to: 'Stockholm C' },
-    { from: 'Västerås C', to: 'Uppsala C' },
-    { from: 'Uppsala C', to: 'Märsta' },
+  const [recentSearches, setRecentSearches] = useState<RouteSelection[]>([
+    { from: L.Märsta, to: L.StockholmC },
+    { from: L.VästeråsC, to: L.UppsalaC },
+    { from: L.UppsalaC, to: L.Märsta },
   ]);
 
   useEffect(() => {
@@ -137,16 +147,14 @@ export function SearchView() {
                     setSearchError(null);
                   }
                 }}
-                placeholder="Uppsala C"
+                placeholder={L.UppsalaC}
                 className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent ${searchError ? 'border-red-400' : 'border-gray-300'}`}
                 list="stations-from"
               />
               <datalist id="stations-from">
-                <option value="Uppsala C" />
-                <option value="Stockholm C" />
-                <option value="Västerås C" />
-                <option value="Arlanda C" />
-                <option value="Märsta" />
+                {stationOptions.map((station) => (
+                  <option key={station} value={station} />
+                ))}
               </datalist>
             </div>
           </div>
@@ -168,16 +176,14 @@ export function SearchView() {
                     setSearchError(null);
                   }
                 }}
-                placeholder="Stockholm C"
+                placeholder={L.StockholmC}
                 className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent ${searchError ? 'border-red-400' : 'border-gray-300'}`}
                 list="stations-to"
               />
               <datalist id="stations-to">
-                <option value="Uppsala C" />
-                <option value="Stockholm C" />
-                <option value="Västerås C" />
-                <option value="Arlanda C" />
-                <option value="Märsta" />
+                {stationOptions.map((station) => (
+                  <option key={station} value={station} />
+                ))}
               </datalist>
             </div>
           </div>

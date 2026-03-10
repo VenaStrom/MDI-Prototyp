@@ -1,10 +1,11 @@
 import { QrCode, Calendar, Clock, MapPin, ChevronRight } from 'lucide-react';
+import { Location as L } from '../../locations';
 
 const mockTickets = [
   {
     id: '1',
-    from: 'Uppsala C',
-    to: 'Stockholm C',
+    from: L.UppsalaC,
+    to: L.StockholmC,
     date: '2026-03-07',
     validFrom: '08:15',
     validUntil: '10:15',

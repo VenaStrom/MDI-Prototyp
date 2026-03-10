@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ArrowLeft, Clock, TrendingUp, AlertCircle, Train, Bus } from 'lucide-react';
 import { JourneyDetail } from './JourneyDetail';
+import { Location as L } from '../../locations';
 
 interface Journey {
   id: string;
@@ -33,8 +34,8 @@ const mockJourneys: Journey[] = [
       {
         operator: 'UL',
         type: 'train',
-        from: 'Uppsala C',
-        to: 'Stockholm C',
+        from: L.UppsalaC,
+        to: L.StockholmC,
         departure: '08:15',
         arrival: '09:03',
       }
@@ -52,8 +53,8 @@ const mockJourneys: Journey[] = [
       {
         operator: 'UL',
         type: 'train',
-        from: 'Uppsala C',
-        to: 'Märsta',
+        from: L.UppsalaC,
+        to: L.Märsta,
         departure: '08:45',
         arrival: '09:12',
         delay: 5
@@ -61,8 +62,8 @@ const mockJourneys: Journey[] = [
       {
         operator: 'SL',
         type: 'train',
-        from: 'Märsta',
-        to: 'Stockholm C',
+        from: L.Märsta,
+        to: L.StockholmC,
         departure: '09:25',
         arrival: '09:52',
       }
@@ -79,8 +80,8 @@ const mockJourneys: Journey[] = [
       {
         operator: 'SJ',
         type: 'train',
-        from: 'Uppsala C',
-        to: 'Stockholm C',
+        from: L.UppsalaC,
+        to: L.StockholmC,
         departure: '09:15',
         arrival: '10:08',
       }
