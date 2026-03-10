@@ -86,6 +86,31 @@ export function TicketPurchase({ journey, onBack, onShowTickets, onTicketPurchas
     });
   }, [journey.id, journey.price]);
 
+  useEffect(() => {
+    if (!isPurchased) {
+      return;
+    }
+
+    const redirectDelayMs = 1000;
+    const timeoutId = window.setTimeout(() => {
+      void logEvent({
+        eventType: 'custom',
+        view: 'ticket_purchase',
+        elementId: 'auto_redirect_to_tickets_after_purchase',
+        details: {
+          targetView: 'tickets',
+          delayMs: redirectDelayMs,
+          journeyId: journey.id,
+        },
+      });
+      onShowTickets();
+    }, redirectDelayMs);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [isPurchased, journey.id, onShowTickets]);
+
   const handlePurchase = () => {
     const purchaseStartedAt = performance.now();
 
@@ -146,22 +171,7 @@ export function TicketPurchase({ journey, onBack, onShowTickets, onTicketPurchas
         <p className="text-gray-600 text-center mb-6">
           Din biljett finns nu under "Mina biljetter"
         </p>
-        <button
-          onClick={() => {
-            void logEvent({
-              eventType: 'button_click',
-              view: 'ticket_purchase',
-              elementId: 'open_tickets_after_purchase',
-              details: {
-                targetView: 'tickets',
-              },
-            });
-            onShowTickets();
-          }}
-          className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-        >
-          Visa biljetter
-        </button>
+        <p className="text-sm text-gray-500">Öppnar Mina biljetter…</p>
       </div>
     );
   }
