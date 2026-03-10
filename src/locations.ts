@@ -49,5 +49,16 @@ export const Location = {
   Alta: "Alta",
   Hammerfest: "Hammerfest",
   Kirkenes: "Kirkenes",
+  Köping: "Köping",
+  Fagersta: "Fagersta",
+  Sala: "Sala",
+  AvestaKrylbo: "Avesta Krylbo",
+  Hedemora: "Hedemora",
+  Säter: "Säter",
+  Mora: "Mora",
+  Orsa: "Orsa",
+  Malung: "Malung",
+  Sälen: "Sälen",
+  Idre: "Idre",
 } as const;
 export type Location = typeof Location[keyof typeof Location];

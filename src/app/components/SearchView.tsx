@@ -8,13 +8,14 @@ type TravelTimeMode = 'now' | 'departure' | 'arrival';
 type SearchHistoryState = { mdiSearchResults?: boolean };
 type RouteSelection = { from: string; to: string };
 
-const stationOptions = [
+const stationOptions = [...new Set([
   L.UppsalaC,
   L.StockholmC,
   L.VästeråsC,
   L.ArlandaC,
   L.Märsta,
-];
+  ...Object.values(L),
+])];
 
 const getCurrentLocalTime = () => {
   const now = new Date();
