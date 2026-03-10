@@ -1,14 +1,22 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Search, Ticket, HelpCircle, LucideTicketPlus } from "lucide-react";
 import { SearchView } from "./components/SearchView";
 import { MyTicketsView } from "./components/MyTicketsView";
 import { HelpView } from "./components/HelpView";
+import { logEvent } from "./telemetry";
 import "../styles/index.tw.css";
 
 type View = "search" | "tickets" | "help";
 
 export default function App() {
   const [currentView, setCurrentView] = useState<View>("search");
+
+  useEffect(() => {
+    void logEvent({
+      eventType: "view_open",
+      view: currentView,
+    });
+  }, [currentView]);
 
   return (
     <div className="flex flex-col h-dvh bg-gray-50 lg:max-w-6/12 mx-auto">
@@ -31,7 +39,14 @@ export default function App() {
       {/* Bottom Navigation */}
       <nav className="bg-white border-t border-gray-200 flex justify-around p-2 shadow-lg">
         <button
-          onClick={() => setCurrentView("search")}
+          onClick={() => {
+            void logEvent({
+              eventType: "button_click",
+              view: "navigation",
+              elementId: "nav_search",
+            });
+            setCurrentView("search");
+          }}
           className={`flex flex-col items-center p-2 flex-1 rounded-lg transition-colors ${currentView === "search"
             ? "text-blue-500 bg-blue-50"
             : "text-gray-600 hover:text-gray-900"
@@ -41,7 +56,14 @@ export default function App() {
           <span className="text-xs mt-1">Sök resa</span>
         </button>
         <button
-          onClick={() => setCurrentView("tickets")}
+          onClick={() => {
+            void logEvent({
+              eventType: "button_click",
+              view: "navigation",
+              elementId: "nav_tickets",
+            });
+            setCurrentView("tickets");
+          }}
           className={`flex flex-col items-center p-2 flex-1 rounded-lg transition-colors ${currentView === "tickets"
             ? "text-blue-500 bg-blue-50"
             : "text-gray-600 hover:text-gray-900"
@@ -51,7 +73,14 @@ export default function App() {
           <span className="text-xs mt-1">Mina biljetter</span>
         </button>
         <button
-          onClick={() => setCurrentView("help")}
+          onClick={() => {
+            void logEvent({
+              eventType: "button_click",
+              view: "navigation",
+              elementId: "nav_help",
+            });
+            setCurrentView("help");
+          }}
           className={`flex flex-col items-center p-2 flex-1 rounded-lg transition-colors ${currentView === "help"
             ? "text-blue-500 bg-blue-50"
             : "text-gray-600 hover:text-gray-900"

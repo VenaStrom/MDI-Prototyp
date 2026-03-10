@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowLeft, MapPin, Train, Bus, AlertCircle, TrendingUp, ShoppingCart } from 'lucide-react';
 import { TicketPurchase } from './TicketPurchase';
+import { logEvent } from '../telemetry';
 
 interface JourneySegment {
   operator: string;
@@ -31,6 +32,17 @@ interface JourneyDetailProps {
 export function JourneyDetail({ journey, onBack }: JourneyDetailProps) {
   const [showPurchase, setShowPurchase] = useState(false);
 
+  useEffect(() => {
+    void logEvent({
+      eventType: 'view_open',
+      view: 'journey_detail',
+      details: {
+        journeyId: journey.id,
+        price: journey.price,
+      },
+    });
+  }, [journey.id, journey.price]);
+
   if (showPurchase) {
     return <TicketPurchase journey={journey} onBack={() => setShowPurchase(false)} />;
   }
@@ -40,7 +52,15 @@ export function JourneyDetail({ journey, onBack }: JourneyDetailProps) {
       {/* Header */}
       <div className="flex items-center gap-3 mb-4">
         <button
-          onClick={onBack}
+          onClick={() => {
+            void logEvent({
+              eventType: 'button_click',
+              view: 'journey_detail',
+              elementId: 'back_to_results',
+              details: { journeyId: journey.id },
+            });
+            onBack();
+          }}
           className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
@@ -163,7 +183,18 @@ export function JourneyDetail({ journey, onBack }: JourneyDetailProps) {
 
       {/* Purchase Button */}
       <button
-        onClick={() => setShowPurchase(true)}
+        onClick={() => {
+          void logEvent({
+            eventType: 'purchase_start',
+            view: 'journey_detail',
+            elementId: 'start_purchase',
+            details: {
+              journeyId: journey.id,
+              price: journey.price,
+            },
+          });
+          setShowPurchase(true);
+        }}
         className="w-full bg-blue-400 text-white py-4 rounded-lg font-semibold hover:bg-blue-500 transition-colors flex items-center justify-center gap-2 shadow-lg"
       >
         <ShoppingCart className="w-5 h-5" />

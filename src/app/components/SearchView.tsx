@@ -3,6 +3,7 @@ import { ArrowRight, Calendar, Clock, History, MapPin, Star } from 'lucide-react
 import { JourneyResults } from './JourneyResults';
 import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
 import { Location as L } from '../../locations';
+import { logEvent } from '../telemetry';
 
 type TravelTimeMode = 'now' | 'departure' | 'arrival';
 type SearchHistoryState = { mdiSearchResults?: boolean };
@@ -59,7 +60,21 @@ export function SearchView() {
   const [time, setTime] = useState(getCurrentLocalTime);
   const [showResults, setShowResults] = useState(false);
 
+  useEffect(() => {
+    void logEvent({
+      eventType: 'view_open',
+      view: 'search',
+    });
+  }, []);
+
   const handleTravelTimeModeChange = (nextMode: TravelTimeMode) => {
+    void logEvent({
+      eventType: 'button_click',
+      view: 'search',
+      elementId: 'travel_time_mode',
+      details: { nextMode },
+    });
+
     setTravelTimeMode(nextMode);
 
     const currentDate = getCurrentLocalDate();
@@ -122,11 +137,23 @@ export function SearchView() {
   };
 
   const performSearch = (searchFrom: string, searchTo: string) => {
+    const startedAt = performance.now();
     const trimmedFrom = searchFrom.trim();
     const trimmedTo = searchTo.trim();
 
     if (!trimmedFrom || !trimmedTo) {
       setSearchError('Ange både Från och Till innan du söker.');
+      void logEvent({
+        eventType: 'search_submit',
+        view: 'search',
+        elementId: 'search_submit',
+        success: false,
+        details: {
+          reason: 'missing_from_or_to',
+          from: trimmedFrom,
+          to: trimmedTo,
+        },
+      });
       return;
     }
 
@@ -135,6 +162,17 @@ export function SearchView() {
 
     if (!resolvedFrom || !resolvedTo) {
       setSearchError('Välj stationer från listan (skiftläge ignoreras, och " C" är valfritt).');
+      void logEvent({
+        eventType: 'search_submit',
+        view: 'search',
+        elementId: 'search_submit',
+        success: false,
+        details: {
+          reason: 'invalid_station',
+          from: trimmedFrom,
+          to: trimmedTo,
+        },
+      });
       return;
     }
 
@@ -165,6 +203,21 @@ export function SearchView() {
         setTime(currentTime);
       }
     }
+
+    void logEvent({
+      eventType: 'search_submit',
+      view: 'search',
+      elementId: 'search_submit',
+      success: true,
+      durationMs: Math.round(performance.now() - startedAt),
+      details: {
+        from: resolvedFrom,
+        to: resolvedTo,
+        travelTimeMode,
+        date: date || currentDate,
+        time: time || currentTime,
+      },
+    });
 
     navigateToResults();
   };
@@ -344,6 +397,15 @@ export function SearchView() {
                   key={`${favorite.from}-${favorite.to}`}
                   type="button"
                   onClick={() => {
+                    void logEvent({
+                      eventType: 'button_click',
+                      view: 'search',
+                      elementId: 'favorite_route',
+                      details: {
+                        from: favorite.from,
+                        to: favorite.to,
+                      },
+                    });
                     performSearch(favorite.from, favorite.to);
                   }}
                   className="w-full text-left px-3 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
@@ -366,6 +428,15 @@ export function SearchView() {
                   key={`${search.from}-${search.to}-${index}`}
                   type="button"
                   onClick={() => {
+                    void logEvent({
+                      eventType: 'button_click',
+                      view: 'search',
+                      elementId: 'recent_search',
+                      details: {
+                        from: search.from,
+                        to: search.to,
+                      },
+                    });
                     performSearch(search.from, search.to);
                   }}
                   className="w-full text-left px-3 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"

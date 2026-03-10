@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowLeft, CreditCard, Check } from 'lucide-react';
+import { logEvent } from '../telemetry';
 
 interface Journey {
   id: string;
@@ -23,12 +24,46 @@ export function TicketPurchase({ journey, onBack }: TicketPurchaseProps) {
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [isPurchased, setIsPurchased] = useState(false);
 
+  useEffect(() => {
+    void logEvent({
+      eventType: 'view_open',
+      view: 'ticket_purchase',
+      details: {
+        journeyId: journey.id,
+        price: journey.price,
+      },
+    });
+  }, [journey.id, journey.price]);
+
   const handlePurchase = () => {
+    const purchaseStartedAt = performance.now();
+
+    void logEvent({
+      eventType: 'button_click',
+      view: 'ticket_purchase',
+      elementId: 'confirm_payment',
+      details: {
+        journeyId: journey.id,
+        price: journey.price,
+      },
+    });
+
     setIsPurchasing(true);
     // Simulate payment processing
     setTimeout(() => {
       setIsPurchasing(false);
       setIsPurchased(true);
+
+      void logEvent({
+        eventType: 'purchase_success',
+        view: 'ticket_purchase',
+        success: true,
+        durationMs: Math.round(performance.now() - purchaseStartedAt),
+        details: {
+          journeyId: journey.id,
+          price: journey.price,
+        },
+      });
     }, 1500);
   };
 
@@ -43,7 +78,14 @@ export function TicketPurchase({ journey, onBack }: TicketPurchaseProps) {
           Din biljett finns nu under "Mina biljetter"
         </p>
         <button
-          onClick={() => window.location.reload()}
+          onClick={() => {
+            void logEvent({
+              eventType: 'button_click',
+              view: 'ticket_purchase',
+              elementId: 'back_to_start_after_purchase',
+            });
+            window.location.reload();
+          }}
           className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
         >
           Tillbaka till start
@@ -57,7 +99,17 @@ export function TicketPurchase({ journey, onBack }: TicketPurchaseProps) {
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <button
-          onClick={onBack}
+          onClick={() => {
+            void logEvent({
+              eventType: 'button_click',
+              view: 'ticket_purchase',
+              elementId: 'back_to_journey_detail',
+              details: {
+                journeyId: journey.id,
+              },
+            });
+            onBack();
+          }}
           className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           disabled={isPurchasing}
         >

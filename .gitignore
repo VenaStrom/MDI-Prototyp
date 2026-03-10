@@ -9,3 +9,4 @@ next/
 *.log
 .idea/
 tsconfig.tsbuildinfo
+logs/

@@ -3,6 +3,7 @@ import { ArrowLeft, Calendar, Clock, TrendingUp, AlertCircle, Train, Bus } from 
 import { JourneyDetail } from './JourneyDetail';
 import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
 import { Location as L } from '../../locations';
+import { logEvent } from '../telemetry';
 
 type TravelTimeMode = 'now' | 'departure' | 'arrival';
 type JourneyResultsHistoryState = {
@@ -245,6 +246,33 @@ export function JourneyResults({
   );
 
   useEffect(() => {
+    void logEvent({
+      eventType: 'view_open',
+      view: 'journey_results',
+      details: {
+        from,
+        to,
+        travelTimeMode,
+      },
+    });
+  }, [from, to, travelTimeMode]);
+
+  useEffect(() => {
+    void logEvent({
+      eventType: 'results_loaded',
+      view: 'journey_results',
+      details: {
+        from,
+        to,
+        resultCount: journeys.length,
+        travelTimeMode,
+        selectedDate,
+        selectedTime,
+      },
+    });
+  }, [from, journeys.length, selectedDate, selectedTime, to, travelTimeMode]);
+
+  useEffect(() => {
     if (!selectedJourney) {
       return;
     }
@@ -275,6 +303,19 @@ export function JourneyResults({
   }, [journeys]);
 
   const navigateToJourneyDetail = (journey: Journey) => {
+    void logEvent({
+      eventType: 'journey_open',
+      view: 'journey_results',
+      elementId: 'journey_card',
+      details: {
+        journeyId: journey.id,
+        price: journey.price,
+        reliability: journey.reliability,
+        departure: journey.departure,
+        arrival: journey.arrival,
+      },
+    });
+
     const currentState = (window.history.state as JourneyResultsHistoryState | null) ?? {};
     const nextState: JourneyResultsHistoryState = {
       ...currentState,
@@ -307,7 +348,14 @@ export function JourneyResults({
       <div className="mb-4">
         <div className="flex items-center gap-3">
           <button
-            onClick={onBack}
+            onClick={() => {
+              void logEvent({
+                eventType: 'button_click',
+                view: 'journey_results',
+                elementId: 'back_to_search',
+              });
+              onBack();
+            }}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -322,6 +370,12 @@ export function JourneyResults({
             value={travelTimeMode}
             onValueChange={(value) => {
               if (value) {
+                void logEvent({
+                  eventType: 'button_click',
+                  view: 'journey_results',
+                  elementId: 'travel_time_mode',
+                  details: { nextMode: value },
+                });
                 onTravelTimeModeChange(value as TravelTimeMode);
               }
             }}
@@ -346,7 +400,17 @@ export function JourneyResults({
                 <input
                   type="date"
                   value={selectedDate}
-                  onChange={(event) => onDateChange(event.target.value)}
+                  onChange={(event) => {
+                    void logEvent({
+                      eventType: 'button_click',
+                      view: 'journey_results',
+                      elementId: 'date_change',
+                      details: {
+                        nextDate: event.target.value,
+                      },
+                    });
+                    onDateChange(event.target.value);
+                  }}
                   className="text-sm text-gray-600 bg-transparent border border-gray-300 rounded pl-9 pr-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
                   aria-label="Resedatum"
                 />
@@ -356,7 +420,17 @@ export function JourneyResults({
                 <input
                   type="time"
                   value={selectedTime}
-                  onChange={(event) => onTimeChange(event.target.value)}
+                  onChange={(event) => {
+                    void logEvent({
+                      eventType: 'button_click',
+                      view: 'journey_results',
+                      elementId: 'time_change',
+                      details: {
+                        nextTime: event.target.value,
+                      },
+                    });
+                    onTimeChange(event.target.value);
+                  }}
                   className="text-sm text-gray-600 bg-transparent border border-gray-300 rounded pl-9 pr-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
                   aria-label="Restid"
                 />
