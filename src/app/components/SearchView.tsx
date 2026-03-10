@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowRight, Calendar, Clock, MapPin } from 'lucide-react';
+import { ArrowRight, Calendar, Clock, History, MapPin, Star } from 'lucide-react';
 import { JourneyResults } from './JourneyResults';
 import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
 
@@ -130,15 +130,15 @@ export function SearchView() {
                 }
               }}
               variant="outline"
-              className="w-full"
+              className="w-full *:text-xs"
             >
-              <ToggleGroupItem value="now" className="flex-1">
+              <ToggleGroupItem value="now" className="flex-1 border-l border-border/60">
                 Res nu
               </ToggleGroupItem>
-              <ToggleGroupItem value="departure" className="flex-1">
+              <ToggleGroupItem value="departure" className="flex-1 border-l border-border/60">
                 Avresedatum
               </ToggleGroupItem>
-              <ToggleGroupItem value="arrival" className="flex-1">
+              <ToggleGroupItem value="arrival" className="flex-1 border-l border-border/60">
                 Ankomstdatum
               </ToggleGroupItem>
             </ToggleGroup>
@@ -182,7 +182,7 @@ export function SearchView() {
           {/* Search Button */}
           <button
             type="submit"
-            className="w-full bg-blue-400 text-white py-3 rounded-lg font-medium hover:bg-blue-500 transition-colors flex items-center justify-center gap-2"
+            className="mb-10 w-full bg-blue-400 text-white py-3 rounded-lg font-medium hover:bg-blue-500 transition-colors flex items-center justify-center gap-2"
           >
             Sök resor
             <ArrowRight className="w-5 h-5" />
@@ -190,7 +190,10 @@ export function SearchView() {
 
 
           <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Favoriter</h3>
+            <h3 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+              <Star className="w-4 h-4 text-gray-500" />
+              Favoriter
+            </h3>
             <div className="space-y-2">
               {favorites.map((favorite) => (
                 <button
@@ -209,7 +212,10 @@ export function SearchView() {
           </div>
 
           <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Senaste sökningar</h3>
+            <h3 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+              <History className="w-4 h-4 text-gray-500" />
+              Senaste sökningar
+            </h3>
             <div className="space-y-2">
               {recentSearches.map((search, index) => (
                 <button
