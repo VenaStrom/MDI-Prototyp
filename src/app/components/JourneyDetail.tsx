@@ -59,7 +59,7 @@ export function JourneyDetail({ journey, onBack }: JourneyDetailProps) {
             <div>
               <p className="font-medium text-amber-900">Försenad avgång</p>
               <p className="text-sm text-amber-800 mt-1">
-                {journey.segments[0].operator} rapporterar {journey.delay} minuters försening. 
+                {journey.segments[0].operator} rapporterar {journey.delay} minuters försening.
                 Dina anslutningar är automatiskt säkrade.
               </p>
             </div>
@@ -70,7 +70,7 @@ export function JourneyDetail({ journey, onBack }: JourneyDetailProps) {
       {/* Journey Segments */}
       <div className="bg-white rounded-lg shadow-md p-4 mb-4">
         <h3 className="font-semibold mb-4">Din resa</h3>
-        
+
         <div className="space-y-4">
           {journey.segments.map((segment, index) => (
             <div key={index}>

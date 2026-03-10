@@ -17,12 +17,37 @@ const stationOptions = [...new Set([
   ...Object.values(L),
 ])];
 
+const normalizeStationName = (value: string) => (
+  value
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toLowerCase()
+    .replace(/\s+c$/, '')
+);
+
+const stationOptionByNormalized = new Map(
+  stationOptions.map((station) => [normalizeStationName(station), station])
+);
+
+const resolveStationOption = (value: string) => (
+  stationOptionByNormalized.get(normalizeStationName(value))
+);
+
 const getCurrentLocalTime = () => {
   const now = new Date();
   const hours = String(now.getHours()).padStart(2, '0');
   const minutes = String(now.getMinutes()).padStart(2, '0');
 
   return `${hours}:${minutes}`;
+};
+
+const getCurrentLocalDate = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
 };
 
 export function SearchView() {
@@ -33,6 +58,27 @@ export function SearchView() {
   const [date, setDate] = useState('');
   const [time, setTime] = useState(getCurrentLocalTime);
   const [showResults, setShowResults] = useState(false);
+
+  const handleTravelTimeModeChange = (nextMode: TravelTimeMode) => {
+    setTravelTimeMode(nextMode);
+
+    const currentDate = getCurrentLocalDate();
+    const currentTime = getCurrentLocalTime();
+
+    if (nextMode === 'now') {
+      setDate(currentDate);
+      setTime(currentTime);
+      return;
+    }
+
+    if (!date) {
+      setDate(currentDate);
+    }
+
+    if (!time) {
+      setTime(currentTime);
+    }
+  };
 
   const favorites: RouteSelection[] = [
     { from: L.UppsalaC, to: L.StockholmC },
@@ -84,20 +130,27 @@ export function SearchView() {
       return;
     }
 
+    const resolvedFrom = resolveStationOption(trimmedFrom);
+    const resolvedTo = resolveStationOption(trimmedTo);
+
+    if (!resolvedFrom || !resolvedTo) {
+      setSearchError('Välj stationer från listan (skiftläge ignoreras, och " C" är valfritt).');
+      return;
+    }
+
     setSearchError(null);
 
-    const now = new Date();
-    const currentDate = now.toISOString().split('T')[0];
+    const currentDate = getCurrentLocalDate();
     const currentTime = getCurrentLocalTime();
 
-    setFrom(trimmedFrom);
-    setTo(trimmedTo);
+    setFrom(resolvedFrom);
+    setTo(resolvedTo);
     setRecentSearches((previousSearches) => {
       const withoutCurrent = previousSearches.filter(
-        (search) => !(search.from === trimmedFrom && search.to === trimmedTo)
+        (search) => !(search.from === resolvedFrom && search.to === resolvedTo)
       );
 
-      return [{ from: trimmedFrom, to: trimmedTo }, ...withoutCurrent].slice(0, 5);
+      return [{ from: resolvedFrom, to: resolvedTo }, ...withoutCurrent].slice(0, 5);
     });
 
     if (travelTimeMode === 'now') {
@@ -122,7 +175,19 @@ export function SearchView() {
   };
 
   if (showResults) {
-    return <JourneyResults from={from} to={to} onBack={navigateBackToSearch} />;
+    return (
+      <JourneyResults
+        from={from}
+        to={to}
+        travelTimeMode={travelTimeMode}
+        onTravelTimeModeChange={handleTravelTimeModeChange}
+        selectedDate={date || getCurrentLocalDate()}
+        onDateChange={setDate}
+        selectedTime={time}
+        onTimeChange={setTime}
+        onBack={navigateBackToSearch}
+      />
+    );
   }
 
   return (
@@ -199,7 +264,7 @@ export function SearchView() {
               value={travelTimeMode}
               onValueChange={(value) => {
                 if (value) {
-                  setTravelTimeMode(value as TravelTimeMode);
+                  handleTravelTimeModeChange(value as TravelTimeMode);
                 }
               }}
               variant="outline"

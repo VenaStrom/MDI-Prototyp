@@ -1,7 +1,10 @@
 import { useState } from 'react';
-import { ArrowLeft, Clock, TrendingUp, AlertCircle, Train, Bus } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, TrendingUp, AlertCircle, Train, Bus } from 'lucide-react';
 import { JourneyDetail } from './JourneyDetail';
+import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
 import { Location as L } from '../../locations';
+
+type TravelTimeMode = 'now' | 'departure' | 'arrival';
 
 interface Journey {
   id: string;
@@ -92,10 +95,26 @@ const mockJourneys: Journey[] = [
 interface JourneyResultsProps {
   from: string;
   to: string;
+  travelTimeMode: TravelTimeMode;
+  onTravelTimeModeChange: (mode: TravelTimeMode) => void;
+  selectedDate: string;
+  onDateChange: (date: string) => void;
+  selectedTime: string;
+  onTimeChange: (time: string) => void;
   onBack: () => void;
 }
 
-export function JourneyResults({ from, to, onBack }: JourneyResultsProps) {
+export function JourneyResults({
+  from,
+  to,
+  travelTimeMode,
+  onTravelTimeModeChange,
+  selectedDate,
+  onDateChange,
+  selectedTime,
+  onTimeChange,
+  onBack,
+}: JourneyResultsProps) {
   const [selectedJourney, setSelectedJourney] = useState<Journey | null>(null);
 
   if (selectedJourney) {
@@ -105,16 +124,64 @@ export function JourneyResults({ from, to, onBack }: JourneyResultsProps) {
   return (
     <div className="p-4">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-4">
-        <button
-          onClick={onBack}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <div>
+      <div className="mb-4">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onBack}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
           <h2 className="font-semibold">{from} → {to}</h2>
-          <p className="text-sm text-gray-600">Idag</p>
+        </div>
+
+        <div className="mt-2 space-y-2">
+          <ToggleGroup
+            type="single"
+            value={travelTimeMode}
+            onValueChange={(value) => {
+              if (value) {
+                onTravelTimeModeChange(value as TravelTimeMode);
+              }
+            }}
+            variant="outline"
+            className="w-full *:text-xs"
+          >
+            <ToggleGroupItem value="now" className="flex-1 border-l border-border/60">
+              Res nu
+            </ToggleGroupItem>
+            <ToggleGroupItem value="departure" className="flex-1 border-l border-border/60">
+              Avresedatum
+            </ToggleGroupItem>
+            <ToggleGroupItem value="arrival" className="flex-1 border-l border-border/60">
+              Ankomstdatum
+            </ToggleGroupItem>
+          </ToggleGroup>
+
+          {travelTimeMode !== 'now' && (
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="relative">
+                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(event) => onDateChange(event.target.value)}
+                  className="text-sm text-gray-600 bg-transparent border border-gray-300 rounded pl-9 pr-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  aria-label="Resedatum"
+                />
+              </div>
+              <div className="relative">
+                <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="time"
+                  value={selectedTime}
+                  onChange={(event) => onTimeChange(event.target.value)}
+                  className="text-sm text-gray-600 bg-transparent border border-gray-300 rounded pl-9 pr-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  aria-label="Restid"
+                />
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -138,7 +205,7 @@ export function JourneyResults({ from, to, onBack }: JourneyResultsProps) {
 
             {/* Time and Duration */}
             <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-4">
+              <div className="flex items-center justify-between gap-4 w-full px-10">
                 <div>
                   <div className="text-xl font-semibold">{journey.departure}</div>
                   <div className="text-xs text-gray-500">{journey.segments[0].from}</div>
