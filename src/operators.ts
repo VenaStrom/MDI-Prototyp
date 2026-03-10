@@ -1,3 +1,8 @@
+/** 
+ * # UNUSED
+ * Unused for now and probably forever hihi
+ */
+
 export const Operators = {
   SJ: "SJ",
   MTR: "Mälartåg",
