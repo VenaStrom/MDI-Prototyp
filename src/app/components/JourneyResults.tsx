@@ -1,10 +1,14 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowLeft, Calendar, Clock, TrendingUp, AlertCircle, Train, Bus } from 'lucide-react';
 import { JourneyDetail } from './JourneyDetail';
 import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
 import { Location as L } from '../../locations';
 
 type TravelTimeMode = 'now' | 'departure' | 'arrival';
+type JourneyResultsHistoryState = {
+  mdiSearchResults?: boolean;
+  mdiSearchJourneyDetailId?: string;
+};
 
 interface Journey {
   id: string;
@@ -117,8 +121,52 @@ export function JourneyResults({
 }: JourneyResultsProps) {
   const [selectedJourney, setSelectedJourney] = useState<Journey | null>(null);
 
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      const state = event.state as JourneyResultsHistoryState | null;
+      const selectedJourneyId = state?.mdiSearchJourneyDetailId;
+
+      if (!selectedJourneyId) {
+        setSelectedJourney(null);
+        return;
+      }
+
+      const matchingJourney = mockJourneys.find((journey) => journey.id === selectedJourneyId) ?? null;
+      setSelectedJourney(matchingJourney);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
+
+  const navigateToJourneyDetail = (journey: Journey) => {
+    const currentState = (window.history.state as JourneyResultsHistoryState | null) ?? {};
+    const nextState: JourneyResultsHistoryState = {
+      ...currentState,
+      mdiSearchResults: true,
+      mdiSearchJourneyDetailId: journey.id,
+    };
+
+    window.history.pushState(nextState, '', window.location.href);
+    setSelectedJourney(journey);
+  };
+
+  const navigateBackFromJourneyDetail = () => {
+    const state = window.history.state as JourneyResultsHistoryState | null;
+
+    if (state?.mdiSearchJourneyDetailId) {
+      window.history.back();
+      return;
+    }
+
+    setSelectedJourney(null);
+  };
+
   if (selectedJourney) {
-    return <JourneyDetail journey={selectedJourney} onBack={() => setSelectedJourney(null)} />;
+    return <JourneyDetail journey={selectedJourney} onBack={navigateBackFromJourneyDetail} />;
   }
 
   return (
@@ -135,6 +183,7 @@ export function JourneyResults({
           <h2 className="font-semibold">{from} → {to}</h2>
         </div>
 
+        {/* Time & date */}
         <div className="mt-2 space-y-2">
           <ToggleGroup
             type="single"
@@ -159,7 +208,7 @@ export function JourneyResults({
           </ToggleGroup>
 
           {travelTimeMode !== 'now' && (
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center justify-center gap-2">
               <div className="relative">
                 <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
@@ -190,7 +239,7 @@ export function JourneyResults({
         {mockJourneys.map((journey) => (
           <div
             key={journey.id}
-            onClick={() => setSelectedJourney(journey)}
+            onClick={() => navigateToJourneyDetail(journey)}
             className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow cursor-pointer"
           >
             {/* Delay Alert */}
