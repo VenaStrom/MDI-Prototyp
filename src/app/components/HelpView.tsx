@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { MessageCircle, FileText, AlertCircle, Phone, Mail, Clock, LucideQrCode } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
+import { toast } from 'sonner';
+import { logEvent } from '../telemetry';
 import {
   Dialog,
   DialogContent,
@@ -19,14 +21,40 @@ export function HelpView() {
       <div className="bg-white rounded-lg shadow-md p-4 mb-4">
         <h3 className="font-semibold mb-3">Snabblänkar</h3>
         <div className="space-y-2">
-          <button className="w-full flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors">
+          <button
+            className="w-full flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
+            onClick={() => {
+              toast('Inte tillgängligt i demo');
+              void logEvent({
+                eventType: 'button_click',
+                view: 'help',
+                elementId: 'request_compensation_unavailable_demo',
+                details: {
+                  message: 'Inte tillgängligt i demo',
+                },
+              });
+            }}
+          >
             <div className="flex items-center gap-3">
               <AlertCircle className="w-5 h-5 text-blue-500" />
               <span className="font-medium">Begär ersättning</span>
             </div>
             <span className="text-sm text-blue-500">→</span>
           </button>
-          <button className="w-full flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">
+          <button
+            className="w-full flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
+            onClick={() => {
+              toast('Inte tillgängligt i demo');
+              void logEvent({
+                eventType: 'button_click',
+                view: 'help',
+                elementId: 'my_cases_unavailable_demo',
+                details: {
+                  message: 'Inte tillgängligt i demo',
+                },
+              });
+            }}
+          >
             <div className="flex items-center gap-3">
               <FileText className="w-5 h-5 text-gray-600" />
               <span className="font-medium">Mina ärenden</span>
@@ -75,7 +103,7 @@ export function HelpView() {
               <li>• Samordning mellan operatörer</li>
               <li>• Ersättningshantering</li>
               <li>• Biljettköp och giltighet</li>
-              <li>• Support vid problem</li>
+              <li>• Vi ser till att du hamnar i kontakt med rätt support</li>
             </ul>
           </div>
           <div>
@@ -107,7 +135,20 @@ export function HelpView() {
               <p className="text-sm text-gray-600">support@example.com</p>
             </div>
           </a>
-          <button className="w-full flex items-center gap-3 p-3 bg-blue-400 text-white rounded-lg hover:bg-blue-500 transition-colors">
+          <button
+            className="w-full flex items-center gap-3 p-3 bg-blue-400 text-white rounded-lg hover:bg-blue-500 transition-colors"
+            onClick={() => {
+              toast('Inte tillgängligt i demo');
+              void logEvent({
+                eventType: 'button_click',
+                view: 'help',
+                elementId: 'start_chat_unavailable_demo',
+                details: {
+                  message: 'Inte tillgängligt i demo',
+                },
+              });
+            }}
+          >
             <MessageCircle className="w-5 h-5" />
             <span className="font-medium">Starta chatt</span>
           </button>

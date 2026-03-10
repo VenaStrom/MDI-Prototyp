@@ -5,6 +5,7 @@ import { MyTicketsView } from "./components/MyTicketsView";
 import { HelpView } from "./components/HelpView";
 import { logEvent } from "./telemetry";
 import { ALWAYS_MOCK_TICKET, type AppTicket } from "./tickets";
+import { Toaster } from "sonner";
 import "../styles/index.tw.css";
 
 type View = "search" | "tickets" | "help";
@@ -110,6 +111,8 @@ export default function App() {
           <span className="text-xs mt-1">Hjälp</span>
         </button>
       </nav>
+
+      <Toaster position="top-center" />
     </div>
   );
 }
