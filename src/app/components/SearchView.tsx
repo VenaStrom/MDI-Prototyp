@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowRight, Calendar, Clock, History, MapPin, Star } from 'lucide-react';
 import { JourneyResults } from './JourneyResults';
 import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
 
 type TravelTimeMode = 'now' | 'departure' | 'arrival';
+type SearchHistoryState = { mdiSearchResults?: boolean };
 
 const getCurrentLocalTime = () => {
   const now = new Date();
@@ -26,38 +27,84 @@ export function SearchView() {
     { from: 'Uppsala C', to: 'Arlanda C' },
   ];
 
-  const recentSearches = [
+  const [recentSearches, setRecentSearches] = useState([
     { from: 'Märsta', to: 'Stockholm C' },
     { from: 'Västerås C', to: 'Uppsala C' },
     { from: 'Uppsala C', to: 'Märsta' },
-  ];
+  ]);
+
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      const state = event.state as SearchHistoryState | null;
+      setShowResults(Boolean(state?.mdiSearchResults));
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
+
+  const navigateToResults = () => {
+    const nextState: SearchHistoryState = { mdiSearchResults: true };
+    window.history.pushState(nextState, '', window.location.href);
+    setShowResults(true);
+  };
+
+  const navigateBackToSearch = () => {
+    const state = window.history.state as SearchHistoryState | null;
+
+    if (state?.mdiSearchResults) {
+      window.history.back();
+      return;
+    }
+
+    setShowResults(false);
+  };
+
+  const performSearch = (searchFrom: string, searchTo: string) => {
+    if (!searchFrom || !searchTo) {
+      return;
+    }
+
+    const now = new Date();
+    const currentDate = now.toISOString().split('T')[0];
+    const currentTime = getCurrentLocalTime();
+
+    setFrom(searchFrom);
+    setTo(searchTo);
+    setRecentSearches((previousSearches) => {
+      const withoutCurrent = previousSearches.filter(
+        (search) => !(search.from === searchFrom && search.to === searchTo)
+      );
+
+      return [{ from: searchFrom, to: searchTo }, ...withoutCurrent].slice(0, 5);
+    });
+
+    if (travelTimeMode === 'now') {
+      setDate(currentDate);
+      setTime(currentTime);
+    } else {
+      if (!date) {
+        setDate(currentDate);
+      }
+
+      if (!time) {
+        setTime(currentTime);
+      }
+    }
+
+    navigateToResults();
+  };
 
   const handleSearch = (e: React.SubmitEvent) => {
     e.preventDefault();
-    if (from && to) {
-      const now = new Date();
-      const currentDate = now.toISOString().split('T')[0];
-      const currentTime = getCurrentLocalTime();
-
-      if (travelTimeMode === 'now') {
-        setDate(currentDate);
-        setTime(currentTime);
-      } else {
-        if (!date) {
-          setDate(currentDate);
-        }
-
-        if (!time) {
-          setTime(currentTime);
-        }
-      }
-
-      setShowResults(true);
-    }
+    performSearch(from, to);
   };
 
   if (showResults) {
-    return <JourneyResults from={from} to={to} onBack={() => setShowResults(false)} />;
+    return <JourneyResults from={from} to={to} onBack={navigateBackToSearch} />;
   }
 
   return (
@@ -200,11 +247,11 @@ export function SearchView() {
                   key={`${favorite.from}-${favorite.to}`}
                   type="button"
                   onClick={() => {
-                    setFrom(favorite.from);
-                    setTo(favorite.to);
+                    performSearch(favorite.from, favorite.to);
                   }}
-                  className="w-full text-left px-3 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="w-full text-left px-3 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
                 >
+                  <Star className="w-4 h-4 text-gray-500" />
                   <span className="text-sm text-gray-800">{favorite.from} → {favorite.to}</span>
                 </button>
               ))}
@@ -222,11 +269,11 @@ export function SearchView() {
                   key={`${search.from}-${search.to}-${index}`}
                   type="button"
                   onClick={() => {
-                    setFrom(search.from);
-                    setTo(search.to);
+                    performSearch(search.from, search.to);
                   }}
-                  className="w-full text-left px-3 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="w-full text-left px-3 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
                 >
+                  <History className="w-4 h-4 text-gray-500" />
                   <span className="text-sm text-gray-700">{search.from} → {search.to}</span>
                 </button>
               ))}
