@@ -1,5 +1,14 @@
+import { useEffect, useState } from 'react';
 import { QrCode, Calendar, Clock, ChevronRight } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { Location as L } from '../../locations';
+
+const QR_CYCLE_MS = 1400;
+const QR_FLUFF_BLOBS = [
+  'meta:wagon=07|zone=UL-STHLM|seat=free|fare=flex|control=standard|signature=F4A29C8ED31B6A0E92|padding=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+  'meta:wagon=11|zone=UL-STHLM|seat=free|fare=flex|control=night-shift|signature=8D77A90BE1C44F22AB|padding=yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy',
+  'meta:wagon=03|zone=UL-STHLM|seat=free|fare=flex|control=randomized|signature=2BC1D9EE7A18F50CF4|padding=zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz'
+];
 
 const mockTickets = [
   {
@@ -15,7 +24,28 @@ const mockTickets = [
   }
 ];
 
+function buildTicketQrPayload(ticket: (typeof mockTickets)[number], blob: string) {
+  const url = new URL('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+  url.searchParams.set('ticketId', ticket.id);
+  url.searchParams.set('from', ticket.from);
+  url.searchParams.set('to', ticket.to);
+  url.searchParams.set('validFrom', ticket.validFrom);
+  url.searchParams.set('validUntil', ticket.validUntil);
+  url.searchParams.set('bs', blob);
+  return url.toString();
+}
+
 export function MyTicketsView() {
+  const [qrFrame, setQrFrame] = useState(0);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setQrFrame((previous) => previous + 1);
+    }, QR_CYCLE_MS);
+
+    return () => window.clearInterval(interval);
+  }, []);
+
   return (
     <div className="p-4">
       <h2 className="text-xl font-semibold mb-4">Mina biljetter</h2>
@@ -32,7 +62,11 @@ export function MyTicketsView() {
         </div>
       ) : (
         <div className="space-y-3">
-          {mockTickets.map((ticket) => (
+          {mockTickets.map((ticket, ticketIndex) => {
+            const blobIndex = (qrFrame + ticketIndex) % QR_FLUFF_BLOBS.length;
+            const qrPayload = buildTicketQrPayload(ticket, QR_FLUFF_BLOBS[blobIndex]);
+
+            return (
             <div key={ticket.id} className="bg-white rounded-lg shadow-md overflow-hidden">
               {/* Ticket Header */}
               <div className="bg-gradient-to-r from-blue-400 to-blue-500 text-white p-4">
@@ -73,8 +107,14 @@ export function MyTicketsView() {
 
                 {/* QR Code Section */}
                 <div className="bg-gray-100 rounded-lg p-6 flex flex-col items-center">
-                  <div className="w-48 h-48 bg-white rounded-lg flex items-center justify-center mb-3">
-                    <QrCode className="w-32 h-32 text-gray-700" />
+                  <div className="w-full max-w-[30rem] aspect-square bg-white rounded-lg flex items-center justify-center mb-3 p-2">
+                    <QRCodeSVG
+                      value={qrPayload}
+                      size={512}
+                      level="M"
+                      marginSize={4}
+                      className="w-full h-full"
+                    />
                   </div>
                   <p className="text-sm text-gray-600 text-center">
                     Visa denna QR-kod för kontrollant
@@ -89,7 +129,8 @@ export function MyTicketsView() {
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
