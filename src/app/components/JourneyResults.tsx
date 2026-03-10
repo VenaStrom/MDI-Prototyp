@@ -100,6 +100,26 @@ const getTransferStation = (from: string, to: string) => {
   return fallbackStations.find((station) => station !== from && station !== to) ?? L.Märsta;
 };
 
+const formatJourneyDate = (isoDate: string) => {
+  if (!isoDate) {
+    return '';
+  }
+
+  const [year, month, day] = isoDate.split('-').map(Number);
+
+  if (!year || !month || !day) {
+    return isoDate;
+  }
+
+  const localDate = new Date(year, month - 1, day);
+
+  return localDate.toLocaleDateString('sv-SE', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  });
+};
+
 const buildJourneys = (
   from: string,
   to: string,
@@ -215,6 +235,10 @@ export function JourneyResults({
   onBack,
 }: JourneyResultsProps) {
   const [selectedJourney, setSelectedJourney] = useState<Journey | null>(null);
+  const journeyDateLabel = useMemo(
+    () => formatJourneyDate(selectedDate),
+    [selectedDate],
+  );
   const journeys = useMemo(
     () => buildJourneys(from, to, travelTimeMode, selectedTime),
     [from, to, travelTimeMode, selectedTime],
@@ -377,6 +401,12 @@ export function JourneyResults({
                 </div>
               </div>
             </div>
+
+            {travelTimeMode !== 'now' && (
+              <div className="mb-3 text-xs text-gray-600">
+                {travelTimeMode === 'departure' ? 'Avresedatum:' : 'Ankomstdatum:'} {journeyDateLabel}
+              </div>
+            )}
 
             {/* Operators */}
             <div className="flex items-center gap-2 mb-3">
