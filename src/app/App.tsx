@@ -4,12 +4,14 @@ import { SearchView } from "./components/SearchView";
 import { MyTicketsView } from "./components/MyTicketsView";
 import { HelpView } from "./components/HelpView";
 import { logEvent } from "./telemetry";
+import { ALWAYS_MOCK_TICKET, type AppTicket } from "./tickets";
 import "../styles/index.tw.css";
 
 type View = "search" | "tickets" | "help";
 
 export default function App() {
   const [currentView, setCurrentView] = useState<View>("search");
+  const [tickets, setTickets] = useState<AppTicket[]>([ALWAYS_MOCK_TICKET]);
 
   useEffect(() => {
     void logEvent({
@@ -18,10 +20,21 @@ export default function App() {
     });
   }, [currentView]);
 
+  useEffect(() => {
+    void logEvent({
+      eventType: "custom",
+      view: "app",
+      elementId: "seed_mock_ticket",
+      details: {
+        ticketId: ALWAYS_MOCK_TICKET.id,
+      },
+    });
+  }, []);
+
   return (
     <div className="flex flex-col h-dvh bg-gray-50 lg:max-w-6/12 mx-auto">
       {/* Header */}
-      <header className="bg-blue-400 text-white p-4 shadow-md flex flex-row items-center gap-x-2">
+      <header className="bg-blue-400 text-white p-4 py-3.5 shadow-md flex flex-row items-center gap-x-2">
         <LucideTicketPlus className="w-8 h-8 mb-1" />
         <span>
           <h1 className="text-xl font-semibold">[[Appnamn]]</h1>
@@ -31,8 +44,15 @@ export default function App() {
 
       {/* Content */}
       <main className="flex-1 overflow-auto">
-        {currentView === "search" && <SearchView />}
-        {currentView === "tickets" && <MyTicketsView />}
+        {currentView === "search" && (
+          <SearchView
+            onShowTickets={() => setCurrentView("tickets")}
+            onTicketPurchased={(ticket) => {
+              setTickets((previousTickets) => [ticket, ...previousTickets]);
+            }}
+          />
+        )}
+        {currentView === "tickets" && <MyTicketsView tickets={tickets} />}
         {currentView === "help" && <HelpView />}
       </main>
 

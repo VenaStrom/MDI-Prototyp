@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ArrowLeft, CreditCard, Check } from 'lucide-react';
 import { logEvent } from '../telemetry';
+import type { AppTicket } from '../tickets';
 
 interface Journey {
   id: string;
@@ -18,9 +19,59 @@ interface Journey {
 interface TicketPurchaseProps {
   journey: Journey;
   onBack: () => void;
+  onShowTickets: () => void;
+  onTicketPurchased: (ticket: AppTicket) => void;
 }
 
-export function TicketPurchase({ journey, onBack }: TicketPurchaseProps) {
+const parseTimeToMinutes = (time: string) => {
+  const [hours, minutes] = time.split(':').map(Number);
+
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) {
+    return null;
+  }
+
+  return hours * 60 + minutes;
+};
+
+const formatMinutesToTime = (totalMinutes: number) => {
+  const wrappedMinutes = ((totalMinutes % 1440) + 1440) % 1440;
+  const hours = Math.floor(wrappedMinutes / 60);
+  const minutes = wrappedMinutes % 60;
+
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+};
+
+const getCurrentLocalDate = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+};
+
+const buildTicketFromJourney = (journey: Journey): AppTicket => {
+  const validFrom = journey.departure;
+  const validFromMinutes = parseTimeToMinutes(validFrom);
+  const validUntil = validFromMinutes === null
+    ? journey.arrival
+    : formatMinutesToTime(validFromMinutes + 120);
+  const operators = [...new Set(journey.segments.map((segment) => segment.operator))];
+
+  return {
+    id: `ticket-${Date.now()}-${journey.id}`,
+    from: journey.segments[0].from,
+    to: journey.segments[journey.segments.length - 1].to,
+    date: getCurrentLocalDate(),
+    validFrom,
+    validUntil,
+    price: journey.price,
+    operators,
+    status: 'active',
+  };
+};
+
+export function TicketPurchase({ journey, onBack, onShowTickets, onTicketPurchased }: TicketPurchaseProps) {
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [isPurchased, setIsPurchased] = useState(false);
 
@@ -51,6 +102,9 @@ export function TicketPurchase({ journey, onBack }: TicketPurchaseProps) {
     setIsPurchasing(true);
     // Simulate payment processing
     setTimeout(() => {
+      const purchasedTicket = buildTicketFromJourney(journey);
+      onTicketPurchased(purchasedTicket);
+
       setIsPurchasing(false);
       setIsPurchased(true);
 
@@ -61,7 +115,22 @@ export function TicketPurchase({ journey, onBack }: TicketPurchaseProps) {
         durationMs: Math.round(performance.now() - purchaseStartedAt),
         details: {
           journeyId: journey.id,
+          ticketId: purchasedTicket.id,
           price: journey.price,
+        },
+      });
+
+      void logEvent({
+        eventType: 'custom',
+        view: 'ticket_purchase',
+        elementId: 'ticket_added_to_my_tickets',
+        success: true,
+        details: {
+          ticketId: purchasedTicket.id,
+          from: purchasedTicket.from,
+          to: purchasedTicket.to,
+          validFrom: purchasedTicket.validFrom,
+          validUntil: purchasedTicket.validUntil,
         },
       });
     }, 1500);
@@ -82,13 +151,16 @@ export function TicketPurchase({ journey, onBack }: TicketPurchaseProps) {
             void logEvent({
               eventType: 'button_click',
               view: 'ticket_purchase',
-              elementId: 'back_to_start_after_purchase',
+              elementId: 'open_tickets_after_purchase',
+              details: {
+                targetView: 'tickets',
+              },
             });
-            window.location.reload();
+            onShowTickets();
           }}
           className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
         >
-          Tillbaka till start
+          Visa biljetter
         </button>
       </div>
     );

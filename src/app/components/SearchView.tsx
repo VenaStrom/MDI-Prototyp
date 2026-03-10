@@ -4,6 +4,7 @@ import { JourneyResults } from './JourneyResults';
 import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
 import { Location as L } from '../../locations';
 import { logEvent } from '../telemetry';
+import type { AppTicket } from '../tickets';
 
 type TravelTimeMode = 'now' | 'departure' | 'arrival';
 type SearchHistoryState = { mdiSearchResults?: boolean };
@@ -51,7 +52,12 @@ const getCurrentLocalDate = () => {
   return `${year}-${month}-${day}`;
 };
 
-export function SearchView() {
+interface SearchViewProps {
+  onShowTickets: () => void;
+  onTicketPurchased: (ticket: AppTicket) => void;
+}
+
+export function SearchView({ onShowTickets, onTicketPurchased }: SearchViewProps) {
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [searchError, setSearchError] = useState<string | null>(null);
@@ -239,6 +245,8 @@ export function SearchView() {
         selectedTime={time}
         onTimeChange={setTime}
         onBack={navigateBackToSearch}
+        onShowTickets={onShowTickets}
+        onTicketPurchased={onTicketPurchased}
       />
     );
   }

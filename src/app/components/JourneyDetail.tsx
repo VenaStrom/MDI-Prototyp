@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ArrowLeft, MapPin, Train, Bus, AlertCircle, TrendingUp, ShoppingCart } from 'lucide-react';
 import { TicketPurchase } from './TicketPurchase';
 import { logEvent } from '../telemetry';
+import type { AppTicket } from '../tickets';
 
 interface JourneySegment {
   operator: string;
@@ -27,9 +28,11 @@ interface Journey {
 interface JourneyDetailProps {
   journey: Journey;
   onBack: () => void;
+  onShowTickets: () => void;
+  onTicketPurchased: (ticket: AppTicket) => void;
 }
 
-export function JourneyDetail({ journey, onBack }: JourneyDetailProps) {
+export function JourneyDetail({ journey, onBack, onShowTickets, onTicketPurchased }: JourneyDetailProps) {
   const [showPurchase, setShowPurchase] = useState(false);
 
   useEffect(() => {
@@ -44,7 +47,14 @@ export function JourneyDetail({ journey, onBack }: JourneyDetailProps) {
   }, [journey.id, journey.price]);
 
   if (showPurchase) {
-    return <TicketPurchase journey={journey} onBack={() => setShowPurchase(false)} />;
+    return (
+      <TicketPurchase
+        journey={journey}
+        onBack={() => setShowPurchase(false)}
+        onShowTickets={onShowTickets}
+        onTicketPurchased={onTicketPurchased}
+      />
+    );
   }
 
   return (

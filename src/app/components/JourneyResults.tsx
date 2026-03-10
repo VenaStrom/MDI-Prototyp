@@ -4,6 +4,7 @@ import { JourneyDetail } from './JourneyDetail';
 import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
 import { Location as L } from '../../locations';
 import { logEvent } from '../telemetry';
+import type { AppTicket } from '../tickets';
 
 type TravelTimeMode = 'now' | 'departure' | 'arrival';
 type JourneyResultsHistoryState = {
@@ -222,6 +223,8 @@ interface JourneyResultsProps {
   selectedTime: string;
   onTimeChange: (time: string) => void;
   onBack: () => void;
+  onShowTickets: () => void;
+  onTicketPurchased: (ticket: AppTicket) => void;
 }
 
 export function JourneyResults({
@@ -234,6 +237,8 @@ export function JourneyResults({
   selectedTime,
   onTimeChange,
   onBack,
+  onShowTickets,
+  onTicketPurchased,
 }: JourneyResultsProps) {
   const [selectedJourney, setSelectedJourney] = useState<Journey | null>(null);
   const journeyDateLabel = useMemo(
@@ -339,7 +344,14 @@ export function JourneyResults({
   };
 
   if (selectedJourney) {
-    return <JourneyDetail journey={selectedJourney} onBack={navigateBackFromJourneyDetail} />;
+    return (
+      <JourneyDetail
+        journey={selectedJourney}
+        onBack={navigateBackFromJourneyDetail}
+        onShowTickets={onShowTickets}
+        onTicketPurchased={onTicketPurchased}
+      />
+    );
   }
 
   return (
