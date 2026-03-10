@@ -17,6 +17,7 @@ const getCurrentLocalTime = () => {
 export function SearchView() {
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
+  const [searchError, setSearchError] = useState<string | null>(null);
   const [travelTimeMode, setTravelTimeMode] = useState<TravelTimeMode>('now');
   const [date, setDate] = useState('');
   const [time, setTime] = useState(getCurrentLocalTime);
@@ -64,22 +65,28 @@ export function SearchView() {
   };
 
   const performSearch = (searchFrom: string, searchTo: string) => {
-    if (!searchFrom || !searchTo) {
+    const trimmedFrom = searchFrom.trim();
+    const trimmedTo = searchTo.trim();
+
+    if (!trimmedFrom || !trimmedTo) {
+      setSearchError('Ange både Från och Till innan du söker.');
       return;
     }
+
+    setSearchError(null);
 
     const now = new Date();
     const currentDate = now.toISOString().split('T')[0];
     const currentTime = getCurrentLocalTime();
 
-    setFrom(searchFrom);
-    setTo(searchTo);
+    setFrom(trimmedFrom);
+    setTo(trimmedTo);
     setRecentSearches((previousSearches) => {
       const withoutCurrent = previousSearches.filter(
-        (search) => !(search.from === searchFrom && search.to === searchTo)
+        (search) => !(search.from === trimmedFrom && search.to === trimmedTo)
       );
 
-      return [{ from: searchFrom, to: searchTo }, ...withoutCurrent].slice(0, 5);
+      return [{ from: trimmedFrom, to: trimmedTo }, ...withoutCurrent].slice(0, 5);
     });
 
     if (travelTimeMode === 'now') {
@@ -123,9 +130,15 @@ export function SearchView() {
               <input
                 type="text"
                 value={from}
-                onChange={(e) => setFrom(e.target.value)}
+                onChange={(e) => {
+                  setFrom(e.target.value);
+
+                  if (searchError) {
+                    setSearchError(null);
+                  }
+                }}
                 placeholder="Uppsala C"
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent ${searchError ? 'border-red-400' : 'border-gray-300'}`}
                 list="stations-from"
               />
               <datalist id="stations-from">
@@ -148,9 +161,15 @@ export function SearchView() {
               <input
                 type="text"
                 value={to}
-                onChange={(e) => setTo(e.target.value)}
+                onChange={(e) => {
+                  setTo(e.target.value);
+
+                  if (searchError) {
+                    setSearchError(null);
+                  }
+                }}
                 placeholder="Stockholm C"
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent ${searchError ? 'border-red-400' : 'border-gray-300'}`}
                 list="stations-to"
               />
               <datalist id="stations-to">
@@ -234,6 +253,12 @@ export function SearchView() {
             Sök resor
             <ArrowRight className="w-5 h-5" />
           </button>
+
+          {searchError && (
+            <p className="-mt-8 mb-6 text-sm text-red-600" role="alert">
+              {searchError}
+            </p>
+          )}
 
 
           <div>
