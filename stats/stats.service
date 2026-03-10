@@ -1,0 +1,18 @@
+[Unit]
+Description=MDI stats collector
+After=network.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/root/MDI-Prototyp
+Environment=HOME=/root
+Environment=NVM_DIR=/root/.nvm
+ExecStart=/bin/bash -lc 'source "$NVM_DIR/nvm.sh" && (nvm use --silent default || nvm use --silent --lts) && yarn stats'
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+
