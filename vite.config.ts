@@ -22,7 +22,7 @@ export default defineConfig(({ mode }) => ({
   define: {
     STATS_URL: JSON.stringify(mode === "development"
       ? "http://localhost:3000"
-      : "https://stats.venastrom.se:3000"
+      : "https://stats.venastrom.se"
     ),
   },
 }));
