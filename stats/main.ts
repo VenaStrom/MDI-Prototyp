@@ -15,6 +15,10 @@ function isAllowedOrigin(origin: string): boolean {
       return false;
     }
 
+    if (url.hostname === "venastrom.se" || url.hostname.endsWith(".venastrom.se")) {
+      return true;
+    }
+
     return (
       url.hostname === "localhost" ||
       url.hostname === "127.0.0.1" ||
