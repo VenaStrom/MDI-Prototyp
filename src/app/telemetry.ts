@@ -26,6 +26,8 @@ export type AnalyticsEventInput = {
 const SESSION_ID_STORAGE_KEY = "mdi.telemetry.sessionId";
 const STEP_INDEX_STORAGE_KEY = "mdi.telemetry.stepIndex";
 
+declare const STATS_URL: string;
+
 const createSessionId = (): string => {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
     return crypto.randomUUID();
@@ -54,9 +56,8 @@ const getNextStepIndex = (): number => {
 };
 
 const getStatsEndpoint = (): string => {
-  const fromWindow = (window as Window & { __MDI_STATS_URL__?: string }).__MDI_STATS_URL__;
-  if (typeof fromWindow === "string" && fromWindow.length > 0) {
-    return fromWindow;
+  if (typeof STATS_URL === "string" && STATS_URL.length > 0) {
+    return STATS_URL.endsWith("/stats") ? STATS_URL : `${STATS_URL}/stats`;
   }
 
   return "http://localhost:3000/stats";
