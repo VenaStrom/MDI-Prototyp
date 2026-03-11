@@ -12,6 +12,16 @@ export const Location = {
   SödertäljeC: "Södertälje C",
   Norrköping: "Norrköping",
   Linköping: "Linköping",
+  Kvicksund: "Kvicksund",
+  Kolbäck: "Kolbäck",
+  Morgongåva: "Morgongåva",
+  Hälleforsnäs: "Hälleforsnäs",
+  Flen: "Flen",
+  Katrineholm: "Katrineholm",
+  Vingåker: "Vingåker",
+  Nyköping: "Nyköping",
+  Oxelösund: "Oxelösund",
+  Trosa: "Trosa",
   Gävle: "Gävle",
   Umeå: "Umeå",
   Sundsvall: "Sundsvall",
@@ -60,5 +70,6 @@ export const Location = {
   Malung: "Malung",
   Sälen: "Sälen",
   Idre: "Idre",
+  Heby: "Heby",
 } as const;
 export type Location = typeof Location[keyof typeof Location];
